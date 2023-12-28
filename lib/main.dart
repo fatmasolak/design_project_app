@@ -1,9 +1,10 @@
-import 'package:design_project_app/screens/home_page.dart';
 import 'package:design_project_app/screens/splash_screen.dart';
+import 'package:design_project_app/screens/user_logged_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 
 import 'package:design_project_app/screens/auth.dart';
@@ -22,27 +23,29 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Fashion',
-      theme: ThemeData(
-        useMaterial3: true,
-        primaryColor: primaryColor,
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SplashScreen();
-          }
+    return ProviderScope(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Fashion',
+        theme: ThemeData(
+          useMaterial3: true,
+          primaryColor: primaryColor,
+          scaffoldBackgroundColor: secondaryColor,
+        ),
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
+            }
 
-          if (snapshot.hasData) {
-            return const HomePageScreen();
-          } else {
-            return const AuthScreen();
-          }
-        },
+            if (snapshot.hasData) {
+              return const UserLoggedInScreen();
+            } else {
+              return const AuthScreen();
+            }
+          },
+        ),
       ),
     );
   }

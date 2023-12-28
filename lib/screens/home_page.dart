@@ -1,49 +1,76 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:design_project_app/models/competition_model.dart';
+import 'package:design_project_app/providers/competitions_provider.dart';
+import 'package:design_project_app/screens/competition_details.dart';
+import 'package:design_project_app/widgets/create_competition_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-//The idea behind this screen  simply is to use it as a loading screen whilst
-//Firebase is figuring out whether we have a token or not
-
-class HomePageScreen extends StatelessWidget {
+class HomePageScreen extends ConsumerWidget {
   const HomePageScreen({super.key});
 
   @override
-  Widget build(context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fashion'),
-        actions: [
-          IconButton(
-            onPressed: () => showDialog<String>(
-              context: context,
-              builder: (BuildContext context) => AlertDialog(
-                title: const Text('Logout'),
-                content: const Text('Are you sure want to log out?'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, 'No'),
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      FirebaseAuth.instance.signOut();
-                      Navigator.pop(context, 'Yes');
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dataList = ref.watch(dataProvider);
+
+    return dataList.when(
+      data: (competition) {
+        return ListView.builder(
+          itemCount: competition.length,
+          itemBuilder: (context, index) => Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: InkWell(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CompetitionDetails(
+                          competition: competition[index],
+                          competitionStatus:
+                              determineStatus(competition[index]),
+                        ),
+                      ),
+                    );
+                  },
+                  child: CreateCompetitionCard(
+                      status: determineStatus(competition[index]),
+                      competitions: competition,
+                      index: index),
+                ),
               ),
             ),
-            icon: const Icon(
-              Icons.exit_to_app,
-              color: Color.fromARGB(255, 25, 24, 26),
-            ),
           ),
-        ],
-      ),
-      body: const Center(
-        child: Text('Home page'),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(
+        child: Text('Error: $error'),
       ),
     );
+  }
+
+  String determineStatus(CompetitionModel competition) {
+    DateFormat format = DateFormat('dd/MM/yyyy');
+
+    DateTime startDate = format.parse(competition.competitionStartDate);
+    DateTime endDate = format.parse(competition.competitionEndDate);
+
+    DateTime now = DateTime.now();
+
+    String status = "";
+
+    if (startDate.isAfter(now)) {
+      status = "will start soon";
+    }
+    if (endDate.isBefore(now)) {
+      status = "completed";
+    }
+    if (startDate.isBefore(now) && endDate.isAfter(now)) {
+      status = "in progress";
+    }
+
+    return status;
   }
 }

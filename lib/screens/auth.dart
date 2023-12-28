@@ -59,9 +59,6 @@ class _AuthScreenState extends State<AuthScreen> {
       if (_isLogin) {
         final authenticatedUser = await _firebase.signInWithEmailAndPassword(
             email: _enteredEmail, password: _enteredPassword);
-
-        print('logged in!!!');
-        print(authenticatedUser.user!.uid);
       } else {
         final result = await Navigator.push(
           context,
@@ -106,10 +103,6 @@ class _AuthScreenState extends State<AuthScreen> {
           'birthday': user.birthday,
           'profilePhoto': profilePhotoUrl,
         });
-
-        print('new user registered!!');
-        print(authenticatedUser.user!.uid);
-        print(authenticatedUser.user!.email);
       }
     } on FirebaseAuthException catch (error) {
       ScaffoldMessenger.of(context).clearSnackBars();
