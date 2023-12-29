@@ -1,5 +1,7 @@
 import 'dart:io';
 
+//this class is used to add new user to firestore
+
 class UserModel {
   const UserModel({
     required this.name,
@@ -14,7 +16,6 @@ class UserModel {
   final String surname;
   final String username;
   final String phone;
-
   final String birthday;
   final File profilePhoto;
 }

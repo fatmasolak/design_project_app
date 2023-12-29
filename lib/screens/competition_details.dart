@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:design_project_app/constants.dart';
 import 'package:design_project_app/models/competition_model.dart';
 import 'package:design_project_app/widgets/join_competition.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CompetitionDetails extends StatefulWidget {
@@ -15,20 +17,55 @@ class CompetitionDetails extends StatefulWidget {
 }
 
 class _CompetitionDetailsState extends State<CompetitionDetails> {
-  bool isJoined = false;
+  bool _isJoined = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isJoined();
+  }
 
   void _joinCompetition() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => JoinCompetition(
-            competitionBanner: widget.competition.competitionBanner),
+          competitionBanner: widget.competition.competitionBanner,
+          competitionName: widget.competition.competitionName,
+          competitionId: widget.competition.competitionId,
+        ),
       ),
     );
 
     if (result == true) {
       setState(() {
-        isJoined = true;
+        _isJoined = true;
+      });
+    }
+  }
+
+  void isJoined() async {
+    try {
+      bool isFound = false;
+
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('joinedCompetitions')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection(widget.competition.competitionId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        isFound = true;
+      } else {
+        print('No data found');
+      }
+
+      setState(() {
+        _isJoined = isFound;
+      });
+    } catch (error) {
+      setState(() {
+        print('Something went wrong. Please try again later.');
       });
     }
   }
@@ -140,13 +177,13 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
         width: size.width * 0.6,
         height: size.height * 0.06,
         child: FloatingActionButton(
-          backgroundColor: !isJoined ? thirdColor : forthColor,
+          backgroundColor: !_isJoined ? thirdColor : forthColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(29),
           ),
-          onPressed: !isJoined ? _joinCompetition : () {},
+          onPressed: !_isJoined ? _joinCompetition : () {},
           child: Text(
-            !isJoined ? 'Join Competition' : 'Already joined',
+            !_isJoined ? 'Join Competition' : 'Already joined',
             style: const TextStyle(
               color: secondaryColor,
               fontSize: 17,

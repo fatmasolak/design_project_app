@@ -33,27 +33,6 @@ class _UserCredentialsState extends State<UserCredentials> {
     profilePhoto: File(''),
   );
 
-  /*
-  Future<String?> _isUsernameTaken(String username) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .get();
-
-    
-          if (username.trim().isEmpty) {
-            return 'Please enter your username';
-          }
-          bool isTaken = querySnapshot.docs.isNotEmpty;
-          if(isTaken) {
-            return 'The username is already taken.';
-          }
-
-          return null;
-        
-  }
-  */
-
   void _save() async {
     final isValid = _formKey.currentState!.validate();
 
@@ -115,6 +94,7 @@ class _UserCredentialsState extends State<UserCredentials> {
                       onPickImage: (pickedImage) {
                         _profilePhoto = pickedImage;
                       },
+                      isDark: true,
                     ),
                     const SizedBox(height: 40),
                     saveButton(size),

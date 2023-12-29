@@ -69,12 +69,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
         setState(() {
           user = UserModel(
-              name: result.name,
-              surname: result.surname,
-              username: result.username,
-              phone: result.phone,
-              birthday: result.birthday,
-              profilePhoto: result.profilePhoto);
+            name: result.name,
+            surname: result.surname,
+            username: result.username,
+            phone: result.phone,
+            birthday: result.birthday,
+            profilePhoto: result.profilePhoto,
+          );
         });
 
         final authenticatedUser =
