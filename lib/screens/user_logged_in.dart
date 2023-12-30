@@ -48,9 +48,9 @@ class _UserLoggedInScreenState extends State<UserLoggedInScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.add_circle_outlined,
+              Icons.check,
             ),
-            label: 'Join',
+            label: 'My Competitions',
           ),
         ],
         currentIndex: _selectedIndex,
