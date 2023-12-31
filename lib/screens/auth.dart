@@ -1,15 +1,15 @@
+import 'dart:io';
+import 'dart:async';
+import 'package:flutter/material.dart';
+
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:design_project_app/constants.dart';
 import 'package:design_project_app/models/admin_model.dart';
-import 'package:design_project_app/screens/admin_credentials.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'dart:async';
-import 'dart:io';
-
-import 'package:firebase_auth/firebase_auth.dart';
-
-import 'package:design_project_app/screens/user_credentials.dart';
+import 'package:design_project_app/screens/admin_screens/admin_credentials.dart';
+import 'package:design_project_app/screens/user_screens/user_credentials.dart';
 import 'package:design_project_app/models/user_model.dart';
 
 final _firebase = FirebaseAuth.instance;
@@ -450,6 +450,16 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
 
+    if (result == null) {
+      setState(() {
+        _isLogin = true;
+        _isRegister = false;
+        _isSelected = false;
+      });
+
+      return;
+    }
+
     setState(() {
       admin = result;
     });
@@ -462,6 +472,16 @@ class _AuthScreenState extends State<AuthScreen> {
         builder: (context) => const UserCredentials(),
       ),
     );
+
+    if (result == null) {
+      setState(() {
+        _isLogin = true;
+        _isRegister = false;
+        _isSelected = false;
+      });
+
+      return;
+    }
 
     setState(() {
       user = result;

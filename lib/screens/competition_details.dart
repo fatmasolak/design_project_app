@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:design_project_app/constants.dart';
 import 'package:design_project_app/models/competition_model.dart';
 import 'package:design_project_app/widgets/join_competition.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 
 class CompetitionDetails extends StatefulWidget {
   const CompetitionDetails(
@@ -18,11 +20,29 @@ class CompetitionDetails extends StatefulWidget {
 
 class _CompetitionDetailsState extends State<CompetitionDetails> {
   bool _isJoined = false;
+  String userType = '';
+
+  final _firebase = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
     isJoined();
+    _defineUserType();
+  }
+
+  void _defineUserType() async {
+    final adminData = await _firestore
+        .collection('admins')
+        .doc(_firebase.currentUser!.uid)
+        .get();
+
+    if (adminData.exists) {
+      userType = 'Admin';
+    } else {
+      userType = 'User';
+    }
   }
 
   void _joinCompetition() async {
@@ -86,7 +106,7 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
           competitionDescription(),
           const SizedBox(height: 40),
           competitionDates(),
-          if (widget.competitionStatus == 'in progress')
+          if (widget.competitionStatus == 'in progress' && userType == 'User')
             joinCompetitionButton(size),
         ],
       ),

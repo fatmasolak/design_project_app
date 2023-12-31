@@ -10,8 +10,8 @@ import 'package:design_project_app/providers/competitions_provider.dart';
 import 'package:design_project_app/screens/competition_details.dart';
 import 'package:design_project_app/widgets/create_competition_card.dart';
 
-class HomePageScreen extends ConsumerWidget {
-  const HomePageScreen({super.key});
+class AdminHomePageScreen extends ConsumerWidget {
+  const AdminHomePageScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,19 +26,46 @@ class HomePageScreen extends ConsumerWidget {
                 onPressed: () => showDialog<String>(
                   context: context,
                   builder: (BuildContext context) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure want to log out?'),
+                    backgroundColor: secondaryColor,
+                    title: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: primaryColor,
+                      ),
+                    ),
+                    content: const Text(
+                      'Are you sure want to log out?',
+                      style: TextStyle(
+                        color: primaryColor,
+                      ),
+                    ),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.pop(context, 'No'),
-                        child: const Text('No'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: primaryColor,
+                        ),
+                        child: const Text(
+                          'No',
+                          style: TextStyle(
+                            color: primaryColor,
+                          ),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           FirebaseAuth.instance.signOut();
                           Navigator.pop(context, 'Yes');
                         },
-                        child: const Text('Yes'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: primaryColor,
+                        ),
+                        child: const Text(
+                          'Yes',
+                          style: TextStyle(
+                            color: primaryColor,
+                          ),
+                        ),
                       ),
                     ],
                   ),

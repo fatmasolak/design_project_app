@@ -1,7 +1,7 @@
-import 'package:design_project_app/screens/admin_logged_in.dart';
+import 'package:design_project_app/screens/admin_screens/admin_logged_in.dart';
 import 'package:design_project_app/screens/splash_screen.dart';
 
-import 'package:design_project_app/screens/user_logged_in.dart';
+import 'package:design_project_app/screens/user_screens/user_logged_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

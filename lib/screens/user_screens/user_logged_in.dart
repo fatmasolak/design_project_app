@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:design_project_app/constants.dart';
-import 'package:design_project_app/screens/home_page.dart';
-import 'package:design_project_app/screens/joined_competition_page.dart';
-import 'package:design_project_app/screens/profile_page.dart';
+import 'package:design_project_app/screens/user_screens/home_page.dart';
+import 'package:design_project_app/screens/user_screens/joined_competition_page.dart';
+import 'package:design_project_app/screens/user_screens/profile_page.dart';
 
 class UserLoggedInScreen extends StatefulWidget {
   const UserLoggedInScreen({super.key});

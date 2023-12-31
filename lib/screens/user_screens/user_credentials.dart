@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:design_project_app/constants.dart';
 import 'package:flutter/material.dart';
 
 import 'package:design_project_app/models/user_model.dart';
@@ -58,17 +59,24 @@ class _UserCredentialsState extends State<UserCredentials> {
     });
   }
 
+  void _cancel() async {
+    Navigator.pop(context, null);
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 25, 24, 26),
-        title: const Text(
-          'Enter Your Information',
-          style: TextStyle(
-            color: Colors.white,
+        automaticallyImplyLeading: false,
+        backgroundColor: secondaryColor,
+        title: const Center(
+          child: Text(
+            'Enter Your Information',
+            style: TextStyle(
+              color: primaryColor,
+            ),
           ),
         ),
       ),
@@ -98,6 +106,7 @@ class _UserCredentialsState extends State<UserCredentials> {
                     ),
                     const SizedBox(height: 40),
                     saveButton(size),
+                    cancelButton(size),
                   ],
                 ),
               ),
@@ -303,9 +312,31 @@ class _UserCredentialsState extends State<UserCredentials> {
               vertical: 5,
             ),
             foregroundColor: Colors.white,
-            backgroundColor: const Color.fromARGB(255, 25, 24, 26),
+            backgroundColor: primaryColor,
           ),
           child: const Text('Save'),
+        ),
+      ),
+    );
+  }
+
+  Container cancelButton(Size size) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: SizedBox(
+        width: size.width * 0.8,
+        height: size.height * 0.06,
+        child: TextButton(
+          onPressed: _cancel,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 5,
+            ),
+            foregroundColor: Colors.white,
+            backgroundColor: primaryColor,
+          ),
+          child: const Text('Cancel'),
         ),
       ),
     );
