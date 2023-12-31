@@ -1,16 +1,32 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:design_project_app/constants.dart';
+import 'package:design_project_app/models/admin_model.dart';
+import 'package:design_project_app/screens/admin_credentials.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:design_project_app/screens/user_credentials.dart';
 import 'package:design_project_app/models/user_model.dart';
 
 final _firebase = FirebaseAuth.instance;
-//final _firestore = FirebaseFirestore.instance;
+final _firestore = FirebaseFirestore.instance;
+
+Future<String> getUserType() async {
+  final adminData = await _firestore
+      .collection('admins')
+      .doc(_firebase.currentUser!.uid)
+      .get();
+
+  if (adminData.exists) {
+    return 'Admin';
+  }
+
+  return 'User';
+}
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -27,9 +43,14 @@ class _AuthScreenState extends State<AuthScreen> {
   var _isAuthenticating = false;
   var _isLogin = true;
   var _isRegister = false;
+  var _isSelected = false;
 
   var _enteredEmail = '';
   var _enteredPassword = '';
+
+  var userType = '';
+
+  final _firebase = FirebaseAuth.instance;
 
   UserModel user = UserModel(
     name: '',
@@ -38,6 +59,11 @@ class _AuthScreenState extends State<AuthScreen> {
     phone: '',
     birthday: '',
     profilePhoto: File(''),
+  );
+
+  AdminModel admin = const AdminModel(
+    name: '',
+    surname: '',
   );
 
   void _submit() async {
@@ -54,56 +80,57 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       setState(() {
         _isAuthenticating = true;
+        _isRegister = false;
       });
 
       if (_isLogin) {
         final authenticatedUser = await _firebase.signInWithEmailAndPassword(
             email: _enteredEmail, password: _enteredPassword);
       } else {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const UserCredentials(),
-          ),
-        );
-
-        setState(() {
-          user = UserModel(
-            name: result.name,
-            surname: result.surname,
-            username: result.username,
-            phone: result.phone,
-            birthday: result.birthday,
-            profilePhoto: result.profilePhoto,
-          );
-        });
-
         final authenticatedUser =
             await _firebase.createUserWithEmailAndPassword(
                 email: _enteredEmail, password: _enteredPassword);
 
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('user_profile_photos')
-            .child('${authenticatedUser.user!.uid}.jpg');
+        if (userType == 'Admin') {
+          print('admin works');
 
-        await storageRef.putFile(user.profilePhoto);
+          await FirebaseFirestore.instance
+              .collection('admins')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .set({
+            'userId': FirebaseAuth.instance.currentUser!.uid,
+            'email': FirebaseAuth.instance.currentUser!.email,
+            'name': admin.name,
+            'surname': admin.surname,
+          });
+        }
 
-        final profilePhotoUrl = await storageRef.getDownloadURL();
+        if (userType == 'User') {
+          print('user works');
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(_firebase.currentUser!.uid)
-            .set({
-          'userId': _firebase.currentUser!.uid,
-          'email': _firebase.currentUser!.email,
-          'name': user.name,
-          'surname': user.surname,
-          'username': user.username,
-          'phone': user.phone,
-          'birthday': user.birthday,
-          'profilePhoto': profilePhotoUrl,
-        });
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('user_profile_photos')
+              .child('${FirebaseAuth.instance.currentUser!.uid}.jpg');
+
+          await storageRef.putFile(user.profilePhoto);
+
+          final profilePhotoUrl = await storageRef.getDownloadURL();
+
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .set({
+            'userId': FirebaseAuth.instance.currentUser!.uid,
+            'email': FirebaseAuth.instance.currentUser!.email,
+            'name': user.name,
+            'surname': user.surname,
+            'username': user.username,
+            'phone': user.phone,
+            'birthday': user.birthday,
+            'profilePhoto': profilePhotoUrl,
+          });
+        }
       }
     } on FirebaseAuthException catch (error) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -175,29 +202,36 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    _isLogin ? 'LOGIN' : 'SIGNUP',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                  if (_isLogin || _isRegister)
+                    Column(
                       children: [
-                        emailAddressField(size),
-                        passwordField(size),
-                        if (_isAuthenticating)
-                          const CircularProgressIndicator(),
-                        if (!_isAuthenticating) loginSignupButton(size),
-                        if (!_isAuthenticating) createAccountField(),
+                        Text(
+                          _isLogin ? 'LOGIN' : 'SIGNUP',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              emailAddressField(size),
+                              passwordField(size),
+                              if (_isAuthenticating)
+                                const CircularProgressIndicator(
+                                    color: Colors.white),
+                              if (!_isAuthenticating) loginSignupButton(size),
+                              if (!_isAuthenticating) createAccountField(),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
+                  if (!_isLogin && !_isSelected) typeSelection(size, context),
                   const SizedBox(height: 30),
                 ],
               ),
@@ -205,6 +239,80 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Column typeSelection(Size size, BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          child: SizedBox(
+            width: size.width * 0.8,
+            height: size.height * 0.06,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isRegister = true;
+                  _isSelected = true;
+                  userType = 'User';
+                });
+
+                _awaitUserInformations(context);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 5,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(29),
+                ),
+                foregroundColor: Colors.white,
+                backgroundColor: thirdColor,
+              ),
+              child: const Text(
+                'User',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          child: SizedBox(
+            width: size.width * 0.8,
+            height: size.height * 0.06,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isRegister = true;
+                  _isSelected = true;
+                  userType = 'Admin';
+                });
+
+                _awaitAdminInformations(context);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 5,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(29),
+                ),
+                foregroundColor: Colors.white,
+                backgroundColor: forthColor,
+              ),
+              child: const Text(
+                'Admin',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -319,7 +427,8 @@ class _AuthScreenState extends State<AuthScreen> {
       onPressed: () {
         setState(() {
           _isLogin = !_isLogin;
-          _isRegister = !_isRegister;
+          _isRegister = false;
+          _isSelected = false;
         });
       },
       child: Text(
@@ -331,5 +440,31 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
+  }
+
+  void _awaitAdminInformations(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AdminCredentials(),
+      ),
+    );
+
+    setState(() {
+      admin = result;
+    });
+  }
+
+  void _awaitUserInformations(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserCredentials(),
+      ),
+    );
+
+    setState(() {
+      user = result;
+    });
   }
 }

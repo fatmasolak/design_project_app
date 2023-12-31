@@ -38,7 +38,7 @@ class _JoinedCompetitionPageScreenState
   }
 
   void _startShowTextTimer() {
-    Timer(const Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 2), () {
       setState(() {
         _showNoCompetitionText = true;
       });

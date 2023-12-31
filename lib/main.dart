@@ -1,4 +1,6 @@
+import 'package:design_project_app/screens/admin_logged_in.dart';
 import 'package:design_project_app/screens/splash_screen.dart';
+
 import 'package:design_project_app/screens/user_logged_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +42,28 @@ class App extends StatelessWidget {
             }
 
             if (snapshot.hasData) {
-              return const UserLoggedInScreen();
+              return FutureBuilder<String>(
+                future: getUserType(),
+                builder: (ctx, userTypeSnapshot) {
+                  if (userTypeSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const SplashScreen();
+                  }
+
+                  if (userTypeSnapshot.hasData) {
+                    final userType = userTypeSnapshot.data;
+                    if (userType == 'User') {
+                      print(userType);
+                      return const UserLoggedInScreen();
+                    } else {
+                      print(userType);
+                      return const AdminLoggedInScreen();
+                    }
+                  } else {
+                    return const AuthScreen();
+                  }
+                },
+              );
             }
 
             return const AuthScreen();
