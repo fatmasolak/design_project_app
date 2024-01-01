@@ -1,3 +1,4 @@
+import 'package:design_project_app/screens/voting_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,6 +22,7 @@ class CompetitionDetails extends StatefulWidget {
 class _CompetitionDetailsState extends State<CompetitionDetails> {
   bool _isJoined = false;
   String userType = '';
+  bool _isLoading = false;
 
   final _firebase = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
@@ -43,6 +45,10 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
     } else {
       userType = 'User';
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _joinCompetition() async {
@@ -65,6 +71,10 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
   }
 
   void isJoined() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       bool isFound = false;
 
@@ -99,17 +109,29 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
         backgroundColor: secondaryColor,
         title: Text(widget.competition.competitionId),
       ),
-      body: Column(
-        children: [
-          competitionBanner(),
-          const SizedBox(height: 20),
-          competitionDescription(),
-          const SizedBox(height: 40),
-          competitionDates(),
-          if (widget.competitionStatus == 'in progress' && userType == 'User')
-            joinCompetitionButton(size),
-        ],
-      ),
+      body: !_isLoading
+          ? Column(
+              children: [
+                competitionBanner(),
+                const SizedBox(height: 20),
+                competitionDescription(),
+                const SizedBox(height: 40),
+                competitionDates(),
+                const SizedBox(height: 40),
+                if (widget.competitionStatus == 'in progress' &&
+                    userType == 'User')
+                  joinCompetitionButton(size),
+                const SizedBox(height: 20),
+                if (widget.competitionStatus == 'in progress' &&
+                    userType == 'User')
+                  votingButton(size),
+              ],
+            )
+          : const Center(
+              child: CircularProgressIndicator(
+                color: primaryColor,
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -191,7 +213,6 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
       padding: const EdgeInsets.only(
         left: 20,
         right: 20,
-        top: 100,
       ),
       child: SizedBox(
         width: size.width * 0.6,
@@ -205,6 +226,44 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
           child: Text(
             !_isJoined ? 'Join Competition' : 'Already joined',
             style: const TextStyle(
+              color: secondaryColor,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Padding votingButton(Size size) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+      ),
+      child: SizedBox(
+        width: size.width * 0.6,
+        height: size.height * 0.06,
+        child: FloatingActionButton(
+          heroTag: 'btn1',
+          backgroundColor: !_isJoined ? thirdColor : forthColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(29),
+          ),
+          onPressed: () async {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VotingPage(
+                  currentCompetitionId: widget.competition.competitionId,
+                ),
+              ),
+            );
+          },
+          child: const Text(
+            'Vote',
+            style: TextStyle(
               color: secondaryColor,
               fontSize: 17,
               fontWeight: FontWeight.bold,

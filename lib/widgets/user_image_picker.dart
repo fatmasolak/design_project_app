@@ -27,7 +27,13 @@ class _UserImagePickerState extends State<UserImagePicker> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Choose source of photo'),
+            backgroundColor: secondaryColor,
+            title: const Text(
+              'Choose source of photo',
+              style: TextStyle(
+                color: primaryColor,
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: () async {
@@ -37,7 +43,15 @@ class _UserImagePickerState extends State<UserImagePicker> {
 
                   Navigator.pop(context);
                 },
-                child: const Text("Gallery"),
+                style: TextButton.styleFrom(
+                  foregroundColor: primaryColor,
+                ),
+                child: const Text(
+                  "Gallery",
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: () async {
@@ -47,7 +61,15 @@ class _UserImagePickerState extends State<UserImagePicker> {
 
                   Navigator.pop(context);
                 },
-                child: const Text("Camera"),
+                style: TextButton.styleFrom(
+                  foregroundColor: primaryColor,
+                ),
+                child: const Text(
+                  "Camera",
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
               ),
             ],
           );
