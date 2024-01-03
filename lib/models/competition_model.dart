@@ -5,6 +5,8 @@ class CompetitionModel {
     required this.competitionBanner,
     required this.competitionStartDate,
     required this.competitionEndDate,
+    required this.votingStartDate,
+    required this.votingEndDate,
   });
 
   final String competitionId;
@@ -12,4 +14,6 @@ class CompetitionModel {
   final String competitionBanner;
   final String competitionStartDate;
   final String competitionEndDate;
+  final String votingStartDate;
+  final String votingEndDate;
 }

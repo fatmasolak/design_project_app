@@ -148,7 +148,7 @@ class _VotingPageState extends State<VotingPage> {
       },
     );
 
-    //this collection is used for checking current user's votes. Voted contestant is won't shown again.
+    //this collection is used for checking current user's votes. Voted contestant is not shown again.
     await FirebaseFirestore.instance
         .collection('votes')
         .doc(FirebaseAuth.instance.currentUser!.uid)

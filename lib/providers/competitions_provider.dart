@@ -16,6 +16,8 @@ final dataProvider = StreamProvider<List<CompetitionModel>>((ref) {
       final competitionBanner = data['competitionBanner'] as String;
       final competitionStartDate = data['competitionStartDate'] as String;
       final competitionEndDate = data['competitionEndDate'] as String;
+      final votingStartDate = data['votingStartDate'] as String;
+      final votingEndDate = data['votingEndDate'] as String;
 
       return CompetitionModel(
         competitionId: competitionId,
@@ -23,6 +25,8 @@ final dataProvider = StreamProvider<List<CompetitionModel>>((ref) {
         competitionBanner: competitionBanner,
         competitionStartDate: competitionStartDate,
         competitionEndDate: competitionEndDate,
+        votingStartDate: votingStartDate,
+        votingEndDate: votingEndDate,
       );
     }).toList();
   });

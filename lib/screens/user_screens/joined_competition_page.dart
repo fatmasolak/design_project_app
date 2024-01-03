@@ -141,19 +141,46 @@ class _JoinedCompetitionPageScreenState
             onPressed: () => showDialog<String>(
               context: context,
               builder: (BuildContext context) => AlertDialog(
-                title: const Text('Logout'),
-                content: const Text('Are you sure want to log out?'),
+                backgroundColor: secondaryColor,
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
+                content: const Text(
+                  'Are you sure want to log out?',
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.pop(context, 'No'),
-                    child: const Text('No'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: primaryColor,
+                    ),
+                    child: const Text(
+                      'No',
+                      style: TextStyle(
+                        color: primaryColor,
+                      ),
+                    ),
                   ),
                   TextButton(
                     onPressed: () {
                       FirebaseAuth.instance.signOut();
                       Navigator.pop(context, 'Yes');
                     },
-                    child: const Text('Yes'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: primaryColor,
+                    ),
+                    child: const Text(
+                      'Yes',
+                      style: TextStyle(
+                        color: primaryColor,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -186,6 +213,8 @@ class _JoinedCompetitionPageScreenState
                             competition: filteredCompetitions[index],
                             competitionStatus:
                                 determineStatus(filteredCompetitions[index]),
+                            votingStatus: determineVotingStatus(
+                                filteredCompetitions[index]),
                           ),
                         ),
                       );
@@ -227,6 +256,29 @@ class _JoinedCompetitionPageScreenState
 
     DateTime startDate = format.parse(competition.competitionStartDate);
     DateTime endDate = format.parse(competition.competitionEndDate);
+
+    DateTime now = DateTime.now();
+
+    String status = "";
+
+    if (startDate.isAfter(now)) {
+      status = "will start soon";
+    }
+    if (endDate.isBefore(now)) {
+      status = "completed";
+    }
+    if (startDate.isBefore(now) && endDate.isAfter(now)) {
+      status = "in progress";
+    }
+
+    return status;
+  }
+
+  String determineVotingStatus(CompetitionModel competition) {
+    DateFormat format = DateFormat('dd/MM/yyyy');
+
+    DateTime startDate = format.parse(competition.votingStartDate);
+    DateTime endDate = format.parse(competition.votingEndDate);
 
     DateTime now = DateTime.now();
 

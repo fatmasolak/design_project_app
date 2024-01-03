@@ -25,10 +25,14 @@ class _CreateCompetitionPageScreenState
   var _enteredCompetitionName = '';
   var _competitionStartDate = '';
   var _competitionEndDate = '';
+  var _votingStartDate = '';
+  var _votingEndDate = '';
   File _competitionBanner = File('');
 
   var _pickedStartDate = '';
   var _pickedEndDate = '';
+  var _pickedVotingStartDate = '';
+  var _pickedVotingEndDate = '';
 
   void _create() async {
     setState(() {
@@ -46,6 +50,8 @@ class _CreateCompetitionPageScreenState
     setState(() {
       _competitionStartDate = _pickedStartDate;
       _competitionEndDate = _pickedEndDate;
+      _votingStartDate = _pickedVotingStartDate;
+      _votingEndDate = _pickedVotingEndDate;
     });
 
     CollectionReference competitions =
@@ -55,6 +61,8 @@ class _CreateCompetitionPageScreenState
       'competitionName': _enteredCompetitionName,
       'competitionEndDate': _competitionEndDate,
       'competitionStartDate': _competitionStartDate,
+      'votingStartDate': _votingStartDate,
+      'votingEndDate': _votingEndDate,
     });
 
     String competitionId = documentReference.id;
@@ -168,6 +176,8 @@ class _CreateCompetitionPageScreenState
                     const SizedBox(height: 20),
                     competitionStartDateField(context, size),
                     competitionEndDateField(context, size),
+                    votingStartDateField(context, size),
+                    votingEndDateField(context, size),
                     UserImagePicker(
                       onPickImage: (pickedImage) {
                         _competitionBanner = pickedImage;
@@ -345,6 +355,148 @@ class _CreateCompetitionPageScreenState
                     padding: const EdgeInsets.only(left: 10),
                     child: Text(
                       _pickedEndDate,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color.fromARGB(255, 25, 24, 26),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container votingStartDateField(BuildContext context, Size size) {
+    return Container(
+      width: size.width * 0.99,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 5,
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Voting Start Date',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              color: Color.fromARGB(255, 25, 24, 26),
+              fontSize: 14.5,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 90,
+              vertical: 5,
+            ),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    showDatePicker(
+                      context: context,
+                      initialDate: DateTime(2024),
+                      firstDate: DateTime(2023),
+                      lastDate: DateTime(2025),
+                    ).then((selectedDate) {
+                      if (selectedDate != null) {
+                        setState(() {
+                          _pickedVotingStartDate =
+                              "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+                        });
+                      }
+                    });
+                  },
+                  child: const Text(
+                    'Pick Date',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 25, 24, 26),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 100,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      _pickedVotingStartDate,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color.fromARGB(255, 25, 24, 26),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container votingEndDateField(BuildContext context, Size size) {
+    return Container(
+      width: size.width * 0.99,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 5,
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Voting End Date',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              color: Color.fromARGB(255, 25, 24, 26),
+              fontSize: 14.5,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 90,
+              vertical: 5,
+            ),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    showDatePicker(
+                      context: context,
+                      initialDate: DateTime(2024),
+                      firstDate: DateTime(2023),
+                      lastDate: DateTime(2025),
+                    ).then((selectedDate) {
+                      if (selectedDate != null) {
+                        setState(() {
+                          _pickedVotingEndDate =
+                              "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+                        });
+                      }
+                    });
+                  },
+                  child: const Text(
+                    'Pick Date',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 25, 24, 26),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 100,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      _pickedVotingEndDate,
                       style: const TextStyle(
                         fontSize: 15,
                         color: Color.fromARGB(255, 25, 24, 26),

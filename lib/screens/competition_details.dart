@@ -1,19 +1,24 @@
-import 'package:design_project_app/screens/voting_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:design_project_app/constants.dart';
+import 'package:design_project_app/screens/voting_page.dart';
 import 'package:design_project_app/models/competition_model.dart';
 import 'package:design_project_app/widgets/join_competition.dart';
 
 class CompetitionDetails extends StatefulWidget {
-  const CompetitionDetails(
-      {super.key, required this.competition, required this.competitionStatus});
+  const CompetitionDetails({
+    super.key,
+    required this.competition,
+    required this.competitionStatus,
+    required this.votingStatus,
+  });
 
   final CompetitionModel competition;
   final String competitionStatus;
+  final String votingStatus;
 
   @override
   State<StatefulWidget> createState() => _CompetitionDetailsState();
@@ -122,9 +127,36 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
                     userType == 'User')
                   joinCompetitionButton(size),
                 const SizedBox(height: 20),
-                if (widget.competitionStatus == 'in progress' &&
-                    userType == 'User')
+                if (widget.votingStatus == 'in progress' && userType == 'User')
                   votingButton(size),
+                if (widget.votingStatus == 'will start soon')
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Center(
+                      child: Text(
+                        'Voting will start on ${widget.competition.votingStartDate}',
+                        style: const TextStyle(
+                          color: forthColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (widget.votingStatus == 'completed')
+                  const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Center(
+                      child: Text(
+                        'Voting has finished',
+                        style: TextStyle(
+                          color: forthColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             )
           : const Center(

@@ -123,6 +123,8 @@ class AdminHomePageScreen extends ConsumerWidget {
                           competition: filteredCompetitions[index],
                           competitionStatus:
                               determineStatus(filteredCompetitions[index]),
+                          votingStatus: determineVotingStatus(
+                              filteredCompetitions[index]),
                         ),
                       ),
                     );
@@ -149,6 +151,29 @@ class AdminHomePageScreen extends ConsumerWidget {
 
     DateTime startDate = format.parse(competition.competitionStartDate);
     DateTime endDate = format.parse(competition.competitionEndDate);
+
+    DateTime now = DateTime.now();
+
+    String status = "";
+
+    if (startDate.isAfter(now)) {
+      status = "will start soon";
+    }
+    if (endDate.isBefore(now)) {
+      status = "completed";
+    }
+    if (startDate.isBefore(now) && endDate.isAfter(now)) {
+      status = "in progress";
+    }
+
+    return status;
+  }
+
+  String determineVotingStatus(CompetitionModel competition) {
+    DateFormat format = DateFormat('dd/MM/yyyy');
+
+    DateTime startDate = format.parse(competition.votingStartDate);
+    DateTime endDate = format.parse(competition.votingEndDate);
 
     DateTime now = DateTime.now();
 
