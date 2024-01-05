@@ -1,74 +1,514 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:design_project_app/constants.dart';
+import 'package:design_project_app/models/joined_competition_model.dart';
+import 'package:design_project_app/models/vote_model.dart';
+import 'package:design_project_app/screens/user_screens/competition_photo_screen.dart';
+import 'package:design_project_app/widgets/create_app_bar.dart';
+import 'package:design_project_app/widgets/create_competition_photo_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ProfilePageScreen extends StatelessWidget {
+class ProfilePageScreen extends StatefulWidget {
   const ProfilePageScreen({super.key});
+
+  @override
+  State<ProfilePageScreen> createState() => _ProfilePageScreenState();
+}
+
+class _ProfilePageScreenState extends State<ProfilePageScreen> {
+  String name = '';
+  String surname = '';
+  String username = '';
+  String profilePhoto = '';
+
+  List<String> competitionIds = [];
+  List<JoinedCompetitionModel> myCompetitions = [];
+  List<String> userIds = [];
+  List<VoteModel> myFavorites = [];
+  bool isLoading = false;
+  bool isCompetitionPhotosShow = false;
+  bool isFavoritesShow = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserInformations();
+    _loadCompetitionIds();
+    _loadUserIds();
+  }
+
+  void _getUserInformations() async {
+    String foundedName = '';
+    String foundedSurname = '';
+    String foundedUsername = '';
+    String foundedProfilePhoto = '';
+
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var doc in querySnapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+          if (data['userId'] == FirebaseAuth.instance.currentUser!.uid) {
+            foundedName = data['name'];
+            foundedSurname = data['surname'];
+            foundedUsername = data['username'];
+            foundedProfilePhoto = data['profilePhoto'];
+          }
+        }
+      } else {
+        print('No data found');
+      }
+
+      setState(() {
+        name = foundedName;
+        surname = foundedSurname;
+        username = foundedUsername;
+        profilePhoto = foundedProfilePhoto;
+      });
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  void _loadCompetitionIds() async {
+    List<String> loadedCompetitionIds = [];
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('competitions').get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var doc in querySnapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+          loadedCompetitionIds.add(data['competitionId']);
+        }
+      } else {
+        print('No data found');
+      }
+
+      setState(() {
+        competitionIds = loadedCompetitionIds;
+      });
+    } catch (error) {
+      setState(() {
+        print('Something went wrong. Please try again later.');
+      });
+    }
+
+    _loadMyCompetitions(competitionIds);
+  }
+
+  void _loadUserIds() async {
+    List<String> loadedUserIds = [];
+
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var doc in querySnapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+          loadedUserIds.add(data['userId']);
+        }
+      } else {
+        print('No data found');
+      }
+
+      setState(() {
+        userIds = loadedUserIds;
+      });
+    } catch (error) {
+      setState(() {
+        print('Something went wrong. Please try again later.');
+      });
+    }
+
+    _loadFavorites(competitionIds, userIds);
+  }
+
+  void _loadMyCompetitions(List competitionIds) async {
+    List<JoinedCompetitionModel> loadedJoinedCompetitions = [];
+
+    try {
+      for (var id in competitionIds) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('joinedCompetitions')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection(id)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          for (var doc in querySnapshot.docs) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+            JoinedCompetitionModel competition = JoinedCompetitionModel(
+              username: data['username'],
+              userId: data['userId'],
+              competitionName: data['competitionName'],
+              competitionId: data['competitionId'],
+              competitionPhoto: data['competitionPhoto'],
+              numberOfVote: data['numberOfVote'],
+            );
+
+            loadedJoinedCompetitions.add(competition);
+          }
+        } else {
+          print('No data found');
+        }
+      }
+
+      setState(() {
+        myCompetitions = loadedJoinedCompetitions;
+      });
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  void _loadFavorites(List competitionIds, List userIds) async {
+    List<VoteModel> loadedFavorites = [];
+
+    try {
+      for (var competitionId in competitionIds) {
+        for (var userId in userIds) {
+          QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+              .collection('votes')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .collection('$competitionId$userId')
+              .get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            for (var doc in querySnapshot.docs) {
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+              VoteModel favorite = VoteModel(
+                competitionId: data['competitionId'],
+                userId: data['userId'],
+                contestantId: data['contestantId'],
+                competitionPhoto: data['competitionPhoto'],
+                competitionName: data['competitionName'],
+                contestantUsername: data['contestantUsername'],
+              );
+
+              loadedFavorites.add(favorite);
+            }
+          } else {
+            print('No data found');
+          }
+        }
+      }
+
+      setState(() {
+        myFavorites = loadedFavorites;
+        isLoading = false;
+      });
+    } catch (error) {
+      print(error);
+    }
+  }
 
   @override
   Widget build(context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: secondaryColor,
-        title: const Text('Fashion'),
-        actions: [
-          IconButton(
-            onPressed: () => showDialog<String>(
-              context: context,
-              builder: (BuildContext context) => AlertDialog(
-                backgroundColor: secondaryColor,
-                title: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: primaryColor,
-                  ),
-                ),
-                content: const Text(
-                  'Are you sure want to log out?',
-                  style: TextStyle(
-                    color: primaryColor,
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, 'No'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                    ),
-                    child: const Text(
-                      'No',
-                      style: TextStyle(
-                        color: primaryColor,
+      appBar: const CreateAppBar(header: 'Fashion', isShowing: true),
+      body: !isLoading
+          ? Stack(
+              alignment: Alignment.center,
+              children: [
+                Column(
+                  children: [
+                    userBanner(),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          profilePageMenu(),
+                          if (isCompetitionPhotosShow) showCompetitionPhotos(),
+                          if (isFavoritesShow) showFavorites(),
+                        ],
                       ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      FirebaseAuth.instance.signOut();
-                      Navigator.pop(context, 'Yes');
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                    ),
-                    child: const Text(
-                      'Yes',
-                      style: TextStyle(
-                        color: primaryColor,
+                  ],
+                ),
+                userProfilePhoto(context),
+              ],
+            )
+          : const Center(
+              child: CircularProgressIndicator(color: primaryColor),
+            ),
+    );
+  }
+
+  Expanded showFavorites() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: myFavorites.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: InkWell(
+              child: Card(
+                color: secondaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Image(
+                        image: NetworkImage(
+                          myFavorites[index].competitionPhoto,
+                        ),
+                        height: 200,
+                        width: 100,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 20),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(myFavorites[index].contestantUsername),
+                        Text(myFavorites[index].competitionName),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            icon: const Icon(
-              Icons.exit_to_app,
-              color: Color.fromARGB(255, 25, 24, 26),
+          );
+        },
+      ),
+    );
+  }
+
+  Expanded showCompetitionPhotos() {
+    return (myCompetitions.isNotEmpty)
+        ? Expanded(
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemCount: myCompetitions.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: InkWell(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CompetitionPhotoScreen(
+                            competitionName:
+                                myCompetitions[index].competitionName,
+                            competitionPhoto:
+                                myCompetitions[index].competitionPhoto,
+                          ),
+                        ),
+                      );
+                    },
+                    child: CreateCompetitionPhotoCard(
+                      competitionName: myCompetitions[index].competitionName,
+                      competitionPhoto: myCompetitions[index].competitionPhoto,
+                    ),
+                  ),
+                );
+              },
+            ),
+          )
+        : const Expanded(
+            child: Center(
+              child: Text(
+                'No any joined competitions',
+              ),
+            ),
+          );
+  }
+
+  Row profilePageMenu() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        linksMenuBotton(),
+        competitionPhotosMenuButton(),
+        showUsername(),
+        resultsMenuButton(),
+        favoritesMenuButton(),
+      ],
+    );
+  }
+
+  Column favoritesMenuButton() {
+    return Column(
+      children: [
+        TextButton(
+          onPressed: () {
+            setState(() {
+              isCompetitionPhotosShow = false;
+              isFavoritesShow = true;
+            });
+          },
+          style: TextButton.styleFrom(
+            iconColor: primaryColor,
+            foregroundColor: thirdColor,
+          ),
+          child: const Padding(
+            padding: EdgeInsets.only(
+              top: 0,
+            ),
+            child: Icon(
+              Icons.favorite,
+              size: 40,
             ),
           ),
-        ],
+        ),
+        const SizedBox(height: 50),
+      ],
+    );
+  }
+
+  Column resultsMenuButton() {
+    return Column(
+      children: [
+        const SizedBox(height: 70),
+        TextButton(
+          onPressed: () {},
+          style: TextButton.styleFrom(
+            iconColor: primaryColor,
+            foregroundColor: thirdColor,
+          ),
+          child: const Padding(
+            padding: EdgeInsets.only(
+              top: 0,
+              right: 0,
+            ),
+            child: Icon(
+              Icons.event_note_outlined,
+              size: 40,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column showUsername() {
+    return Column(
+      children: [
+        const SizedBox(height: 50),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 10,
+          ),
+          child: Text(
+            '#$username',
+            style: const TextStyle(fontSize: 16, color: primaryColor),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column competitionPhotosMenuButton() {
+    return Column(
+      children: [
+        const SizedBox(height: 70),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              isFavoritesShow = false;
+              isCompetitionPhotosShow = true;
+            });
+          },
+          style: TextButton.styleFrom(
+            iconColor: primaryColor,
+            foregroundColor: thirdColor,
+          ),
+          child: const Padding(
+            padding: EdgeInsets.only(
+              top: 0,
+              left: 0,
+            ),
+            child: Icon(
+              Icons.image,
+              size: 40,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column linksMenuBotton() {
+    return Column(
+      children: [
+        TextButton(
+          onPressed: () {},
+          style: TextButton.styleFrom(
+            iconColor: primaryColor,
+            foregroundColor: thirdColor,
+          ),
+          child: const Padding(
+            padding: EdgeInsets.only(
+              top: 0,
+            ),
+            child: Icon(
+              Icons.insert_link,
+              size: 40,
+            ),
+          ),
+        ),
+        const SizedBox(height: 50),
+      ],
+    );
+  }
+
+  Positioned userProfilePhoto(BuildContext context) {
+    return Positioned(
+      top: 220,
+      left: MediaQuery.of(context).size.width / 2 - 75,
+      child: Container(
+        width: 150,
+        height: 150,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(width: 2, color: secondaryColor),
+          image: DecorationImage(
+            image: NetworkImage(profilePhoto),
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
-      body: const Center(
-        child: Text('Profile page'),
+    );
+  }
+
+  Container userBanner() {
+    return Container(
+      height: 300,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: NetworkImage(
+            'https://firebasestorage.googleapis.com/v0/b/design-project-app.appspot.com/o/user_banners%2Fbanner.JPG?alt=media&token=77aaa9dd-a9e5-4ad2-8395-56e97b76a030',
+          ),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

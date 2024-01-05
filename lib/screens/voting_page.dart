@@ -117,8 +117,13 @@ class _VotingPageState extends State<VotingPage> {
     }
   }
 
-  void _addVote(String competitionId, String contestantId, int numberOfVote,
-      String competitionPhoto) async {
+  void _addVote(
+      String competitionId,
+      String contestantId,
+      int numberOfVote,
+      String competitionPhoto,
+      String competitionName,
+      String contestantUsername) async {
     String docId = '';
 
     //to fetch voted contestant doc id
@@ -158,6 +163,8 @@ class _VotingPageState extends State<VotingPage> {
       'userId': FirebaseAuth.instance.currentUser!.uid,
       'contestantId': contestantId,
       'competitionPhoto': competitionPhoto,
+      'competitionName': competitionName,
+      'contestantUsername': contestantUsername,
     });
   }
 
@@ -272,10 +279,13 @@ class _VotingPageState extends State<VotingPage> {
                     ),
                     onPressed: () {
                       _addVote(
-                          competition.competitionId,
-                          competition.userId,
-                          competition.numberOfVote,
-                          competition.competitionPhoto);
+                        competition.competitionId,
+                        competition.userId,
+                        competition.numberOfVote,
+                        competition.competitionPhoto,
+                        competition.competitionName,
+                        competition.username,
+                      );
 
                       setState(() {
                         _loadUserIds();
