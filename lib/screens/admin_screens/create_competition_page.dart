@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:design_project_app/constants.dart';
+import 'package:design_project_app/widgets/create_app_bar.dart';
 import 'package:design_project_app/widgets/user_image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
@@ -101,65 +101,8 @@ class _CreateCompetitionPageScreenState
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: secondaryColor,
-        title: const Text('Fashion'),
-        actions: [
-          IconButton(
-            onPressed: () => showDialog<String>(
-              context: context,
-              builder: (BuildContext context) => AlertDialog(
-                backgroundColor: secondaryColor,
-                title: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: primaryColor,
-                  ),
-                ),
-                content: const Text(
-                  'Are you sure want to log out?',
-                  style: TextStyle(
-                    color: primaryColor,
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, 'No'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                    ),
-                    child: const Text(
-                      'No',
-                      style: TextStyle(
-                        color: primaryColor,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      FirebaseAuth.instance.signOut();
-                      Navigator.pop(context, 'Yes');
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: primaryColor,
-                    ),
-                    child: const Text(
-                      'Yes',
-                      style: TextStyle(
-                        color: primaryColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            icon: const Icon(
-              Icons.exit_to_app,
-              color: Color.fromARGB(255, 25, 24, 26),
-            ),
-          ),
-        ],
-      ),
+      appBar:
+          const CreateAppBar(header: 'Create New Competition', isShowing: true),
       body: Container(
         height: size.height,
         width: double.infinity,

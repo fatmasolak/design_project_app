@@ -1,3 +1,4 @@
+import 'package:design_project_app/widgets/create_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class CompetitionPhotoScreen extends StatelessWidget {
@@ -13,9 +14,7 @@ class CompetitionPhotoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(competitionName),
-      ),
+      appBar: CreateAppBar(header: competitionName, isShowing: false),
       backgroundColor: Colors.white,
       body: Center(
         child: Image.network(competitionPhoto),

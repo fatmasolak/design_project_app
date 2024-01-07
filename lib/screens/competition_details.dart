@@ -1,4 +1,5 @@
 import 'package:design_project_app/widgets/calculate_results.dart';
+import 'package:design_project_app/widgets/create_app_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -111,10 +112,8 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: secondaryColor,
-        title: Text(widget.competition.competitionId),
-      ),
+      appBar: CreateAppBar(
+          header: widget.competition.competitionId, isShowing: false),
       body: !_isLoading
           ? SingleChildScrollView(
               child: Column(

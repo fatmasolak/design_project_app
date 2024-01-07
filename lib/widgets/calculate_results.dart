@@ -151,16 +151,12 @@ class _CalculateResultsState extends State<CalculateResults> {
               .get();
 
           if (querySnapshot.docs.isNotEmpty) {
-            print('already added');
-
             setState(() {
               isAddedToFirestore = true;
             });
           }
 
           if (querySnapshot.docs.isEmpty) {
-            print('not added yet');
-
             await FirebaseFirestore.instance
                 .collection('results')
                 .doc(widget.competitionId)
@@ -210,7 +206,6 @@ class _CalculateResultsState extends State<CalculateResults> {
                   borderRadius: BorderRadius.circular(29),
                 ),
                 onPressed: () async {
-                  //_getNumberOfVotes();
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
