@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:design_project_app/constants.dart';
 import 'package:design_project_app/models/joined_competition_model.dart';
+import 'package:design_project_app/models/result_model.dart';
 import 'package:design_project_app/models/vote_model.dart';
 import 'package:design_project_app/screens/user_screens/competition_photo_screen.dart';
 import 'package:design_project_app/widgets/create_app_bar.dart';
@@ -21,13 +22,16 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
   String username = '';
   String profilePhoto = '';
 
+  List<String> myJoinedCompetitionIds = [];
   List<String> competitionIds = [];
   List<JoinedCompetitionModel> myCompetitions = [];
   List<String> userIds = [];
   List<VoteModel> myFavorites = [];
+  List<ResultModel> myResults = [];
   bool isLoading = false;
   bool isCompetitionPhotosShow = false;
   bool isFavoritesShow = false;
+  bool isResultsShow = false;
 
   @override
   void initState() {
@@ -104,6 +108,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     }
 
     _loadMyCompetitions(competitionIds);
+    _loadMyJoinedCompetitionsIds(competitionIds);
   }
 
   void _loadUserIds() async {
@@ -133,6 +138,38 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     }
 
     _loadFavorites(competitionIds, userIds);
+  }
+
+  void _loadMyJoinedCompetitionsIds(List competitionIds) async {
+    List<String> loadedMyJoinedCompetitionsIds = [];
+
+    try {
+      for (var id in competitionIds) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('joinedCompetitions')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection(id)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          for (var doc in querySnapshot.docs) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+            loadedMyJoinedCompetitionsIds.add(data['competitionId']);
+          }
+        } else {
+          print('No data found');
+        }
+      }
+
+      setState(() {
+        myJoinedCompetitionIds = loadedMyJoinedCompetitionsIds;
+      });
+    } catch (error) {
+      print(error);
+    }
+
+    _loadResults(myJoinedCompetitionIds);
   }
 
   void _loadMyCompetitions(List competitionIds) async {
@@ -216,6 +253,52 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     }
   }
 
+  void _loadResults(List myJoinedCompetitionIds) async {
+    List<ResultModel> loadedResults = [];
+
+    try {
+      for (var id in myJoinedCompetitionIds) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('results')
+            .doc(id)
+            .collection(FirebaseAuth.instance.currentUser!.uid)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          for (var doc in querySnapshot.docs) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+            ResultModel result = ResultModel(
+              competitionId: data['competitionId'],
+              competitionName: data['competitionName'],
+              contestantId: data['contestantId'],
+              numberOfVotes: data['numberOfVotes'],
+              rank: data['rank'],
+              contestantPhoto: data['contestantPhoto'],
+              contestantUsername: data['contestantUsername'],
+            );
+
+            loadedResults.add(result);
+
+            print(result.competitionName);
+            print(result.rank);
+            print(result.numberOfVotes);
+          }
+        } else {
+          print('No data found');
+        }
+      }
+
+      setState(() {
+        myResults = loadedResults;
+      });
+
+      print(myResults);
+    } catch (error) {
+      print(error);
+    }
+  }
+
   @override
   Widget build(context) {
     return Scaffold(
@@ -233,6 +316,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                           profilePageMenu(),
                           if (isCompetitionPhotosShow) showCompetitionPhotos(),
                           if (isFavoritesShow) showFavorites(),
+                          if (isResultsShow) showResults(),
                         ],
                       ),
                     ),
@@ -247,53 +331,144 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     );
   }
 
-  Expanded showFavorites() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: myFavorites.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.all(8),
-            child: InkWell(
-              child: Card(
-                color: secondaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Image(
-                        image: NetworkImage(
-                          myFavorites[index].competitionPhoto,
-                        ),
-                        height: 200,
-                        width: 100,
-                        fit: BoxFit.cover,
-                      ),
+  Expanded showResults() {
+    return (myResults.isNotEmpty)
+        ? Expanded(
+            child: ListView.builder(
+              itemCount: myResults.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Card(
+                    color: secondaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(width: 20),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    child: Row(
                       children: [
-                        Text(myFavorites[index].contestantUsername),
-                        Text(myFavorites[index].competitionName),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Image(
+                            image: NetworkImage(
+                              myResults[index].contestantPhoto,
+                            ),
+                            height: 200,
+                            width: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              myResults[index].competitionName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Username: ${myResults[index].contestantUsername}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: primaryColor,
+                              ),
+                            ),
+                            Text(
+                              'Number Of Votes: ${myResults[index].numberOfVotes}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: primaryColor,
+                              ),
+                            ),
+                            Text(
+                              'Rank: ${myResults[index].rank}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                );
+              },
+            ),
+          )
+        : const Expanded(
+            child: Center(
+              child: Text(
+                'No any results',
               ),
             ),
           );
-        },
-      ),
-    );
+  }
+
+  Expanded showFavorites() {
+    return (myFavorites.isNotEmpty)
+        ? Expanded(
+            child: ListView.builder(
+              itemCount: myFavorites.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: InkWell(
+                    child: Card(
+                      color: secondaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Image(
+                              image: NetworkImage(
+                                myFavorites[index].competitionPhoto,
+                              ),
+                              height: 200,
+                              width: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(myFavorites[index].contestantUsername),
+                              Text(myFavorites[index].competitionName),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          )
+        : const Expanded(
+            child: Center(
+              child: Text(
+                'No any favorites',
+              ),
+            ),
+          );
   }
 
   Expanded showCompetitionPhotos() {
@@ -361,6 +536,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
           onPressed: () {
             setState(() {
               isCompetitionPhotosShow = false;
+              isResultsShow = false;
               isFavoritesShow = true;
             });
           },
@@ -388,7 +564,13 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
       children: [
         const SizedBox(height: 70),
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            setState(() {
+              isCompetitionPhotosShow = false;
+              isFavoritesShow = false;
+              isResultsShow = true;
+            });
+          },
           style: TextButton.styleFrom(
             iconColor: primaryColor,
             foregroundColor: thirdColor,
@@ -434,6 +616,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
           onPressed: () {
             setState(() {
               isFavoritesShow = false;
+              isResultsShow = false;
               isCompetitionPhotosShow = true;
             });
           },

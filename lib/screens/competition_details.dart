@@ -1,3 +1,4 @@
+import 'package:design_project_app/widgets/calculate_results.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -115,49 +116,43 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
         title: Text(widget.competition.competitionId),
       ),
       body: !_isLoading
-          ? Column(
-              children: [
-                competitionBanner(),
-                const SizedBox(height: 20),
-                competitionDescription(),
-                const SizedBox(height: 40),
-                competitionDates(),
-                const SizedBox(height: 40),
-                if (widget.competitionStatus == 'in progress' &&
-                    userType == 'User')
-                  joinCompetitionButton(size),
-                const SizedBox(height: 20),
-                if (widget.votingStatus == 'in progress' && userType == 'User')
-                  votingButton(size),
-                if (widget.votingStatus == 'will start soon')
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Center(
-                      child: Text(
-                        'Voting will start on ${widget.competition.votingStartDate}',
-                        style: const TextStyle(
-                          color: forthColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+          ? SingleChildScrollView(
+              child: Column(
+                children: [
+                  competitionBanner(),
+                  const SizedBox(height: 20),
+                  competitionDescription(),
+                  const SizedBox(height: 40),
+                  competitionDates(),
+                  const SizedBox(height: 40),
+                  if (widget.competitionStatus == 'in progress' &&
+                      userType == 'User')
+                    joinCompetitionButton(size),
+                  const SizedBox(height: 20),
+                  if (widget.votingStatus == 'in progress' &&
+                      userType == 'User')
+                    votingButton(size),
+                  if (widget.votingStatus == 'will start soon')
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Center(
+                        child: Text(
+                          'Voting will start on ${widget.competition.votingStartDate}',
+                          style: const TextStyle(
+                            color: forthColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                if (widget.votingStatus == 'completed')
-                  const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Center(
-                      child: Text(
-                        'Voting has finished',
-                        style: TextStyle(
-                          color: forthColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
+                  if (widget.votingStatus == 'completed')
+                    CalculateResults(
+                      competitionId: widget.competition.competitionId,
+                      competitionName: widget.competition.competitionName,
                     ),
-                  ),
-              ],
+                ],
+              ),
             )
           : const Center(
               child: CircularProgressIndicator(
