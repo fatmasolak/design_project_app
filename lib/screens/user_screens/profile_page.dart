@@ -194,6 +194,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
               competitionId: data['competitionId'],
               competitionPhoto: data['competitionPhoto'],
               numberOfVote: data['numberOfVote'],
+              weight: data['weight'],
             );
 
             loadedJoinedCompetitions.add(competition);

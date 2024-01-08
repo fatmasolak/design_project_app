@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:design_project_app/constants.dart';
 import 'package:design_project_app/models/joined_competition_model.dart';
@@ -62,7 +64,7 @@ class _VotingPageState extends State<VotingPage> {
   }
 
   void _loadJoinedCompetitionsAndUsers() async {
-    List<JoinedCompetitionModel> loadedJoinedComeptitions = [];
+    List<JoinedCompetitionModel> loadedJoinedCompetitions = [];
 
     try {
       for (var userId in userIds) {
@@ -91,9 +93,10 @@ class _VotingPageState extends State<VotingPage> {
                   competitionId: data['competitionId'],
                   competitionPhoto: data['competitionPhoto'],
                   numberOfVote: data['numberOfVote'],
+                  weight: data['weight'],
                 );
 
-                loadedJoinedComeptitions.add(competition);
+                loadedJoinedCompetitions.add(competition);
               }
             }
           } else {
@@ -102,14 +105,84 @@ class _VotingPageState extends State<VotingPage> {
         }
       }
 
-      setState(() {
-        joinedCompetitions = loadedJoinedComeptitions;
-        joinedCompetitions.shuffle();
-        isLoading = false;
-        if (loadedJoinedComeptitions.length < 2) {
-          isStarted = false;
+      //sort contestants from high weight to low weight
+      loadedJoinedCompetitions.sort((a, b) => b.weight.compareTo(a.weight));
+
+      for (var cont in loadedJoinedCompetitions) {
+        print('${cont.username} - ${cont.weight}');
+      }
+
+      int totalWeight = 0;
+      for (var contestant in loadedJoinedCompetitions) {
+        totalWeight += contestant.weight;
+      }
+
+      List<JoinedCompetitionModel> contestants = [];
+      int randomNumber = Random().nextInt(totalWeight);
+      int sum = 0;
+      int weight = 0;
+      String documentID = '';
+
+      for (var contestant in loadedJoinedCompetitions) {
+        sum += contestant.weight;
+
+        print('random: $randomNumber - sum: $sum');
+
+        if (randomNumber < sum) {
+          contestants.add(contestant);
         }
-      });
+      }
+
+      for (var contestant in contestants) {
+        print('${contestant.username} - ${contestant.weight}');
+      }
+
+      if (contestants.length < 2) {
+        setState(() {
+          joinedCompetitions = loadedJoinedCompetitions;
+          joinedCompetitions.shuffle();
+          isLoading = false;
+          if (loadedJoinedCompetitions.length < 2) {
+            isStarted = false;
+          }
+        });
+      } else {
+        //sort contestants from low weight to high weight to choose users that has low weight
+        contestants.sort((a, b) => a.weight.compareTo(b.weight));
+
+        if (contestants.length < 2) {
+          for (var i = 0; i < 2; i++) {
+            //update the weight of contestants that will be shown
+            weight = contestants[i].weight;
+            weight++;
+
+            QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+                .collection('joinedCompetitions')
+                .doc(contestants[i].userId)
+                .collection(widget.currentCompetitionId)
+                .get();
+
+            for (DocumentSnapshot document in querySnapshot.docs) {
+              documentID = document.id;
+            }
+
+            await FirebaseFirestore.instance
+                .collection('joinedCompetitions')
+                .doc(contestants[i].userId)
+                .collection(widget.currentCompetitionId)
+                .doc(documentID)
+                .update({'weight': weight});
+          }
+        }
+
+        setState(() {
+          joinedCompetitions = contestants;
+          isLoading = false;
+          if (contestants.length < 2) {
+            isStarted = false;
+          }
+        });
+      }
     } catch (error) {
       setState(() {
         print('Something went wrong. Please try again later.');

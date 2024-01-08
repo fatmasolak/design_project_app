@@ -126,6 +126,7 @@ class _JoinCompetitionState extends State<JoinCompetition> {
       'competitionId': widget.competitionId,
       'competitionPhoto': competitionPhotoUrl,
       'numberOfVote': 0,
+      'weight': 1,
     });
 
     Navigator.pop(context, _isJoined);
