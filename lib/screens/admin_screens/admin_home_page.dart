@@ -72,7 +72,7 @@ class AdminHomePageScreen extends ConsumerWidget {
                 ),
                 icon: const Icon(
                   Icons.exit_to_app,
-                  color: Color.fromARGB(255, 25, 24, 26),
+                  color: primaryColor,
                 ),
               ),
             ],

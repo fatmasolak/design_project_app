@@ -105,52 +105,81 @@ class _VotingPageState extends State<VotingPage> {
         }
       }
 
-      //sort contestants from high weight to low weight
-      loadedJoinedCompetitions.sort((a, b) => b.weight.compareTo(a.weight));
-
-      for (var cont in loadedJoinedCompetitions) {
-        print('${cont.username} - ${cont.weight}');
-      }
-
-      int totalWeight = 0;
-      for (var contestant in loadedJoinedCompetitions) {
-        totalWeight += contestant.weight;
-      }
-
-      List<JoinedCompetitionModel> contestants = [];
-      int randomNumber = Random().nextInt(totalWeight);
-      int sum = 0;
-      int weight = 0;
-      String documentID = '';
-
-      for (var contestant in loadedJoinedCompetitions) {
-        sum += contestant.weight;
-
-        print('random: $randomNumber - sum: $sum');
-
-        if (randomNumber < sum) {
-          contestants.add(contestant);
-        }
-      }
-
-      for (var contestant in contestants) {
-        print('${contestant.username} - ${contestant.weight}');
-      }
-
-      if (contestants.length < 2) {
+      if (loadedJoinedCompetitions.length < 2) {
         setState(() {
-          joinedCompetitions = loadedJoinedCompetitions;
-          joinedCompetitions.shuffle();
           isLoading = false;
-          if (loadedJoinedCompetitions.length < 2) {
-            isStarted = false;
-          }
+          isStarted = false;
         });
       } else {
-        //sort contestants from low weight to high weight to choose users that has low weight
-        contestants.sort((a, b) => a.weight.compareTo(b.weight));
+        //sort contestants from high weight to low weight
+        loadedJoinedCompetitions.sort((a, b) => b.weight.compareTo(a.weight));
+
+        for (var cont in loadedJoinedCompetitions) {
+          print('${cont.username} - ${cont.weight}');
+        }
+
+        int totalWeight = 0;
+        for (var contestant in loadedJoinedCompetitions) {
+          totalWeight += contestant.weight;
+        }
+
+        List<JoinedCompetitionModel> contestants = [];
+        int randomNumber = Random().nextInt(totalWeight);
+        int sum = 0;
+        int weight = 0;
+        String documentID = '';
+
+        for (var contestant in loadedJoinedCompetitions) {
+          sum += contestant.weight;
+
+          print('random: $randomNumber - sum: $sum');
+
+          if (randomNumber < sum) {
+            contestants.add(contestant);
+          }
+        }
+
+        for (var contestant in contestants) {
+          print('${contestant.username} - ${contestant.weight}');
+        }
 
         if (contestants.length < 2) {
+          loadedJoinedCompetitions.sort((a, b) => a.weight.compareTo(b.weight));
+
+          for (var i = 0; i < 2; i++) {
+            //update the weight of contestants that will be shown
+            weight = loadedJoinedCompetitions[i].weight;
+            weight++;
+
+            QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+                .collection('joinedCompetitions')
+                .doc(loadedJoinedCompetitions[i].userId)
+                .collection(widget.currentCompetitionId)
+                .get();
+
+            for (DocumentSnapshot document in querySnapshot.docs) {
+              documentID = document.id;
+            }
+
+            await FirebaseFirestore.instance
+                .collection('joinedCompetitions')
+                .doc(loadedJoinedCompetitions[i].userId)
+                .collection(widget.currentCompetitionId)
+                .doc(documentID)
+                .update({'weight': weight});
+          }
+
+          setState(() {
+            joinedCompetitions = loadedJoinedCompetitions;
+            isLoading = false;
+            if (loadedJoinedCompetitions.length < 2) {
+              isStarted = false;
+            }
+          });
+        } else {
+          //sort contestants from low weight to high weight to choose users that has low weight
+          contestants.sort((a, b) => a.weight.compareTo(b.weight));
+
           for (var i = 0; i < 2; i++) {
             //update the weight of contestants that will be shown
             weight = contestants[i].weight;
@@ -173,15 +202,15 @@ class _VotingPageState extends State<VotingPage> {
                 .doc(documentID)
                 .update({'weight': weight});
           }
-        }
 
-        setState(() {
-          joinedCompetitions = contestants;
-          isLoading = false;
-          if (contestants.length < 2) {
-            isStarted = false;
-          }
-        });
+          setState(() {
+            joinedCompetitions = contestants;
+            isLoading = false;
+            if (contestants.length < 2) {
+              isStarted = false;
+            }
+          });
+        }
       }
     } catch (error) {
       setState(() {

@@ -1,3 +1,4 @@
+import 'package:design_project_app/screens/admin_screens/voting_check_page.dart';
 import 'package:design_project_app/widgets/calculate_results.dart';
 import 'package:design_project_app/widgets/create_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -131,6 +132,9 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
                   if (widget.votingStatus == 'in progress' &&
                       userType == 'User')
                     votingButton(size),
+                  if (widget.votingStatus == 'in progress' &&
+                      userType == 'Admin')
+                    votingCheckButton(size, context),
                   if (widget.votingStatus == 'will start soon')
                     Padding(
                       padding: const EdgeInsets.all(10),
@@ -159,6 +163,45 @@ class _CompetitionDetailsState extends State<CompetitionDetails> {
               ),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  Padding votingCheckButton(Size size, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+      ),
+      child: SizedBox(
+        width: size.width * 0.6,
+        height: size.height * 0.06,
+        child: FloatingActionButton(
+          heroTag: 'btn3',
+          backgroundColor: forthColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(29),
+          ),
+          onPressed: () async {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VotingCheckPage(
+                  competitionId: widget.competition.competitionId,
+                  competitionName: widget.competition.competitionName,
+                ),
+              ),
+            );
+          },
+          child: const Text(
+            'Voting Check',
+            style: TextStyle(
+              color: secondaryColor,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
