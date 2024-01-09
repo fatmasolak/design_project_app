@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:design_project_app/constants.dart';
 import 'package:design_project_app/models/joined_competition_model.dart';
+import 'package:design_project_app/models/links_model.dart';
 import 'package:design_project_app/models/result_model.dart';
 import 'package:design_project_app/models/vote_model.dart';
 import 'package:design_project_app/screens/user_screens/competition_photo_screen.dart';
@@ -28,10 +29,13 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
   List<String> userIds = [];
   List<VoteModel> myFavorites = [];
   List<ResultModel> myResults = [];
+  List<LinksModel> myLinks = [];
+
   bool isLoading = false;
   bool isCompetitionPhotosShow = false;
   bool isFavoritesShow = false;
   bool isResultsShow = false;
+  bool isLinksShow = false;
 
   @override
   void initState() {
@@ -176,6 +180,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     List<JoinedCompetitionModel> loadedJoinedCompetitions = [];
 
     try {
+      print('competitions');
+
       for (var id in competitionIds) {
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('joinedCompetitions')
@@ -216,6 +222,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     List<VoteModel> loadedFavorites = [];
 
     try {
+      print('favorites');
+
       for (var competitionId in competitionIds) {
         for (var userId in userIds) {
           QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -258,6 +266,8 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     List<ResultModel> loadedResults = [];
 
     try {
+      print('results');
+
       for (var id in myJoinedCompetitionIds) {
         QuerySnapshot querySnapshot = await FirebaseFirestore.instance
             .collection('results')
@@ -293,10 +303,64 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
       setState(() {
         myResults = loadedResults;
       });
-
-      print(myResults);
     } catch (error) {
       print(error);
+    }
+
+    _loadLinks(myJoinedCompetitionIds);
+  }
+
+  void _loadLinks(List myJoinedCompetitionIds) async {
+    List<LinksModel> loadedLinks = [];
+
+    try {
+      print('links');
+
+      for (var competitionId in myJoinedCompetitionIds) {
+        print(competitionId);
+
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('links')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection(competitionId)
+            .get();
+
+        print('hello');
+
+        if (querySnapshot.docs.isNotEmpty) {
+          for (var doc in querySnapshot.docs) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+            LinksModel link = LinksModel(
+              dressLink: data['dressLink'],
+              jacketLink: data['jacketLink'],
+              topClothingLink: data['topClothingLink'],
+              bottomWearLink: data['bottomWearLink'],
+              shoesLink: data['shoesLink'],
+              bagLink: data['bagLink'],
+              competitionName: data['competitionName'],
+              competitionPhotoUrl: data['competitionPhoto'],
+              competitionId: data['competitionId'],
+            );
+
+            loadedLinks.add(link);
+
+            for (var link in loadedLinks) {
+              print(link.dressLink);
+              print(link.jacketLink);
+              print(link.shoesLink);
+            }
+          }
+        } else {
+          print('No data found');
+        }
+      }
+
+      setState(() {
+        myLinks = loadedLinks;
+      });
+    } catch (error) {
+      print('links: $error');
     }
   }
 
@@ -318,6 +382,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
                           if (isCompetitionPhotosShow) showCompetitionPhotos(),
                           if (isFavoritesShow) showFavorites(),
                           if (isResultsShow) showResults(),
+                          if (isLinksShow) showLinks(),
                         ],
                       ),
                     ),
@@ -517,6 +582,124 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
           );
   }
 
+  Expanded showLinks() {
+    return (myLinks.isNotEmpty)
+        ? Expanded(
+            child: ListView.builder(
+              itemCount: myLinks.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: InkWell(
+                    child: Card(
+                      color: secondaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Image(
+                              image: NetworkImage(
+                                myLinks[index].competitionPhotoUrl,
+                              ),
+                              height: 200,
+                              width: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                myLinks[index].competitionName,
+                                style: const TextStyle(
+                                  color: primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              if (myLinks[index].dressLink != '')
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(
+                                    'Dress: ${myLinks[index].dressLink}',
+                                    style: const TextStyle(color: primaryColor),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              if (myLinks[index].jacketLink != '')
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(
+                                    'Jacket: ${myLinks[index].jacketLink}',
+                                    style: const TextStyle(color: primaryColor),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              if (myLinks[index].topClothingLink != '')
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(
+                                    'Top Clothing: ${myLinks[index].topClothingLink}',
+                                    style: const TextStyle(color: primaryColor),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              if (myLinks[index].bottomWearLink != '')
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(
+                                    'Bottom Wear: ${myLinks[index].bottomWearLink}',
+                                    style: const TextStyle(color: primaryColor),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              if (myLinks[index].shoesLink != '')
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(
+                                    'Shoes: ${myLinks[index].shoesLink}',
+                                    style: const TextStyle(color: primaryColor),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              if (myLinks[index].bagLink != '')
+                                SizedBox(
+                                  width: 200,
+                                  child: Text(
+                                    'Bag: ${myLinks[index].bagLink}',
+                                    style: const TextStyle(color: primaryColor),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          )
+        : const Expanded(
+            child: Center(
+              child: Text(
+                'No any links',
+              ),
+            ),
+          );
+  }
+
   Row profilePageMenu() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -538,6 +721,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
             setState(() {
               isCompetitionPhotosShow = false;
               isResultsShow = false;
+              isLinksShow = false;
               isFavoritesShow = true;
             });
           },
@@ -569,6 +753,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
             setState(() {
               isCompetitionPhotosShow = false;
               isFavoritesShow = false;
+              isLinksShow = false;
               isResultsShow = true;
             });
           },
@@ -618,6 +803,7 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
             setState(() {
               isFavoritesShow = false;
               isResultsShow = false;
+              isLinksShow = false;
               isCompetitionPhotosShow = true;
             });
           },
@@ -644,7 +830,14 @@ class _ProfilePageScreenState extends State<ProfilePageScreen> {
     return Column(
       children: [
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            setState(() {
+              isFavoritesShow = false;
+              isResultsShow = false;
+              isCompetitionPhotosShow = false;
+              isLinksShow = true;
+            });
+          },
           style: TextButton.styleFrom(
             iconColor: primaryColor,
             foregroundColor: thirdColor,

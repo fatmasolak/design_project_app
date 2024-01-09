@@ -2,6 +2,9 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:design_project_app/constants.dart';
+import 'package:design_project_app/models/links_model.dart';
+import 'package:design_project_app/widgets/outfit_links.dart';
 import 'package:design_project_app/widgets/user_image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -34,6 +37,20 @@ class _JoinCompetitionState extends State<JoinCompetition> {
   bool _isJoined = false;
   bool _isPhotoAdded = true;
   bool _isJoining = false;
+  bool _isLinksAdded = false;
+  bool _isLinksNull = false;
+
+  LinksModel links = const LinksModel(
+    dressLink: '',
+    jacketLink: '',
+    topClothingLink: '',
+    bottomWearLink: '',
+    shoesLink: '',
+    bagLink: '',
+    competitionName: '',
+    competitionPhotoUrl: '',
+    competitionId: '',
+  );
 
   @override
   void initState() {
@@ -94,13 +111,23 @@ class _JoinCompetitionState extends State<JoinCompetition> {
       _isJoining = true;
     });
 
-    print(_isPhotoAdded);
-    if (_addedPhoto.path.isEmpty) {
+    if (links.dressLink == '' &&
+        links.jacketLink == '' &&
+        links.topClothingLink == '' &&
+        links.bottomWearLink == '' &&
+        links.shoesLink == '' &&
+        links.bagLink == '') {
+      setState(() {
+        _isLinksNull = true;
+        _isLinksAdded = false;
+      });
+    }
+
+    if (_addedPhoto.path.isEmpty || _isLinksNull) {
       setState(() {
         _isJoined = false;
         _isJoining = false;
         _isPhotoAdded = false;
-        print(_isPhotoAdded);
       });
       return;
     }
@@ -127,6 +154,22 @@ class _JoinCompetitionState extends State<JoinCompetition> {
       'competitionPhoto': competitionPhotoUrl,
       'numberOfVote': 0,
       'weight': 1,
+    });
+
+    await FirebaseFirestore.instance
+        .collection('links')
+        .doc(_userId)
+        .collection(widget.competitionId)
+        .add({
+      'dressLink': links.dressLink,
+      'jacketLink': links.jacketLink,
+      'topClothingLink': links.topClothingLink,
+      'bottomWearLink': links.bottomWearLink,
+      'shoesLink': links.shoesLink,
+      'bagLink': links.bagLink,
+      'competitionName': widget.competitionName,
+      'competitionId': widget.competitionId,
+      'competitionPhoto': competitionPhotoUrl,
     });
 
     Navigator.pop(context, _isJoined);
@@ -198,9 +241,48 @@ class _JoinCompetitionState extends State<JoinCompetition> {
                   },
                   isDark: false,
                 ),
+                const SizedBox(height: 10),
                 if (!_isPhotoAdded)
                   const Text(
                     'Please add photo',
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: !_isLinksAdded
+                      ? () async {
+                          setState(() {
+                            _isLinksNull = false;
+                          });
+
+                          var result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OutfitLinks(),
+                            ),
+                          );
+
+                          setState(() {
+                            links = result;
+                            _isLinksAdded = true;
+                          });
+                        }
+                      : () {},
+                  child: Text(
+                    !_isLinksAdded ? 'Add Links' : 'Added',
+                    style: const TextStyle(
+                      color: secondaryColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (_isLinksNull)
+                  const Text(
+                    'Please add links',
                     style: TextStyle(
                       color: Colors.red,
                     ),
@@ -340,6 +422,7 @@ class _JoinCompetitionState extends State<JoinCompetition> {
     return AppBar(
       title: const Text('Join'),
       backgroundColor: Colors.transparent,
+      automaticallyImplyLeading: false,
       elevation: 0,
     );
   }

@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:design_project_app/constants.dart';
-import 'package:design_project_app/screens/voting_page.dart';
+import 'package:design_project_app/screens/user_screens/voting_page.dart';
 import 'package:design_project_app/models/competition_model.dart';
 import 'package:design_project_app/widgets/join_competition.dart';
 
