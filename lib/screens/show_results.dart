@@ -72,6 +72,7 @@ class _ShowResultsScreenState extends State<ShowResultsScreen> {
 
   ListView contestantsResult() {
     return ListView.builder(
+      physics: const BouncingScrollPhysics(),
       shrinkWrap: true,
       itemCount: results.length,
       itemBuilder: (context, index) {
