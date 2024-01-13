@@ -92,7 +92,7 @@ class _VotingCheckPageState extends State<VotingCheckPage> {
       }
 
       //sort the list by votes increasing to decreasing
-      contestantsAndVotes
+      loadedContestantsAndVotes
           .sort((a, b) => b.values.first.compareTo(a.values.first));
 
       setState(() {
